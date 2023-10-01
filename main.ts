@@ -1,6 +1,7 @@
 import axios from "axios";
 import { api_key } from "./config";
-import { TeamStat, Team, Game } from "./api"
+import { TeamStat, Team, Game,  } from "./api" //Record, Total, ConferenceGames, HomeGames, AwayGames
+import { TeamRecord } from "./api/record_api"
 import readline from 'readline';
 
 async function getGameData(team: string): Promise<Game[]> {
@@ -14,8 +15,9 @@ async function getGameData(team: string): Promise<Game[]> {
       },
     });
     // Assuming the response.data is an array of games
-    const gamesData: any[] = response.data;
 
+    const gamesData: any[] = response.data;
+    
     // Map the raw data to instances of your Game interface
     const games: Game[] = gamesData.map((gameData: any) => {
       const teams: Team[] = gameData.teams.map((teamData: any) => {
@@ -46,48 +48,58 @@ async function getGameData(team: string): Promise<Game[]> {
   }
 }
 
-function calculateTeamRecord(teamName: string, games: Game[]): string {
-  let wins = 0;
-  let losses = 0;
+async function getTeamRecord(team: string): Promise<TeamRecord[]> {
+  const currentDate = new Date();
+  const currentYear = currentDate.getFullYear();
+  try {
+    const response = await axios.get(`https://api.collegefootballdata.com/records?year=${currentYear}&team=${team}`, {
+      headers: {
+        'Authorization': `Bearer ${api_key}`,
+        // Add other headers if required
+      },
+    });
+    const data: any[] = response.data; // Replace with the actual data structure from your API response
 
-  for (const game of games) {
-    for (const team of game.teams) {
-      if (team.school === teamName) {
-        if (team.points > 0) {
-          wins += 1;
-        } else {
-          losses += 1;
-        }
-        break; // No need to continue checking the other team in the same game
-      }
-    }
+    // Map the API response data to the TeamInfo interface
+    const teamStatsData: TeamRecord[] = data.map((item: any) => ({
+      year: item.year,
+      teamId: item.teamId,
+      team: item.team,
+      conference: item.conference,
+      division: item.division,
+      expectedWins: item.expectedWins,
+      total: {
+        games: item.total.games,
+        wins: item.total.wins,
+        losses: item.total.losses,
+        ties: item.total.ties,
+      },
+      conferenceGames: {
+        games: item.conferenceGames.games,
+        wins: item.conferenceGames.wins,
+        losses: item.conferenceGames.losses,
+        ties: item.conferenceGames.ties,
+      },
+      homeGames: {
+        games: item.homeGames.games,
+        wins: item.homeGames.wins,
+        losses: item.homeGames.losses,
+        ties: item.homeGames.ties,
+      },
+      awayGames: {
+        games: item.awayGames.games,
+        wins: item.awayGames.wins,
+        losses: item.awayGames.losses,
+        ties: item.awayGames.ties,
+      },
+    }));
+
+    return teamStatsData;
+  } catch (error) {
+    console.error('Error fetching team stats:', error);
+    throw error;
   }
-
-  return `${wins}-${losses}`;
 }
-
-// function compileScores(teamName: string, games: Game[]): string {
-
-//   interface Score {
-//     team1Name: string,
-//     team1Score: number,
-//     team2Name: string,
-//     team2Score: number
-//   }
-
-//   const score: Score[] = teamData.stats.map((statData: any) => ({
-//           category: statData.category,
-//           stat: statData.stat,
-//         }));
-
-//   for (const game of games) {
-//     for (const team of game.teams) {
-//       if (team.school == teamName) {
-//         score.team1Name = team.school
-//       }
-//     }
-//   }
-// }
 
 function askQuestion(question: string): Promise<string> {
   const rl = readline.createInterface({
@@ -124,59 +136,12 @@ async function main() {
       }
     });
 
-    // Sort uniqueGames by game ID in ascending order (oldest to newest)
-    uniqueGames.sort((a, b) => a.id - b.id);
-
-    uniqueGames.forEach((game: Game) => {
-      // Sort the games by gameId from oldest to newest
-      if (game.teams[0]) {
-        if (game.teams[1]) {
-          if (game.teams[0].school === userInput) {
-            const team1 = game.teams[0].school;
-            const score1 = game.teams[0].points;
-            const team2 = game.teams[1].school;
-            const score2 = game.teams[1].points;
-            console.log(`${team1} ${score1} - ${team2} ${score2}`);
-          }
-          else if (game.teams[1].school === userInput) {
-            const team1 = game.teams[1].school;
-            const score1 = game.teams[1].points;
-            const team2 = game.teams[0].school;
-            const score2 = game.teams[0].points;
-            console.log(`${team1} ${score1} - ${team2} ${score2}`);
-          }
-        } 
-      }
-    });
-    const teamRecord = calculateTeamRecord(userInput, games);
-    console.log(`${userInput}'s Record: ${teamRecord}`);
+    const teamRecord = await getTeamRecord(userInput);
+    //console.dir(teamRecord, { depth: null });
+    console.log(`${userInput}'s Record: ${teamRecord[0]?.total.wins} - ${teamRecord[0]?.total.losses}`);
   } catch (error) {
     console.error('Error fetching game data:', error);
   }
 }
 
 main();
-
-// async function getCollegeFootballScores() {
-
-//   const currentDate = new Date();
-//   const currentYear = currentDate.getFullYear();
-
-//   try {
-//     const response = await axios.get(`https://api.collegefootballdata.com/games/teams?year=${currentYear}&seasonType=regular&team=Texas`, {
-//       headers: {
-//         'Authorization': `Bearer ${api_key}`,
-//         // Add other headers if required
-//       },
-//     });
-//     // const scores = response.data; // Assuming the API returns JSON data
-
-//     // Process and display the scores
-
-//     console.dir(response.data, { depth: null });
-//   } catch (error) {
-//     console.error('Error fetching scores:', error);
-//   }
-// }
-
-// Call the function to retrieve scores

@@ -16,7 +16,7 @@ export interface TeamStat {
     id: number;
     teams: Team[];
   }
-  
+
   export const exampleData: Game[] = [
     {
       id: 0,
