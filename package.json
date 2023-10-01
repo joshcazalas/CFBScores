@@ -1,0 +1,29 @@
+{
+    "name": "cfbscores",
+    "description": "Dependencies for CFBScores",
+    "version": "17.1.0",
+    "author": {
+        "name": "Josh Cazalas",
+        "email": "joshuacazalas@gmail.com",
+        "url": "https://github.com/joshcazalas"
+    },
+    "type": "commonjs",
+    "dependencies": {
+        "eslint": "^8.41.0",
+        "node-fetch": "3.3.2",
+        "axios": "1.5.1"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/joshcazalas/CFBScores"
+    },
+    "scripts": {
+        "test": "npm run test-internal && npm run test-external",
+        "test-internal": "./bin/cmd.cjs --verbose && tape test/*.js",
+        "test-external": "tape test/external/*.js",
+        "update-authors": "./tools/update-authors.sh && hallmark --fix AUTHORS.md"
+    },
+    "devDependencies": {
+        "@types/node": "^20.8.0"
+    }
+}
