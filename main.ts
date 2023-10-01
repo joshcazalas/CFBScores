@@ -140,8 +140,8 @@ function askQuestion(question: string): Promise<string> {
 
 async function main() {
 
-  const userInput = await askQuestion('Enter a college football team to see their current record and scores this season: ');
-  console.log(`Fetching scores and records for ${userInput}...`);
+  const userInput = await askQuestion('Enter a college football team to see their current record this season: ');
+  console.log(`Fetching current record for ${userInput}...`);
 
   let isTeamNameValid = await validateTeamName(userInput)
   
