@@ -42,6 +42,10 @@ async function main() {
     console.log(`It's ${getCurrentTime()} and OU Still Sucks!`)
     await sleep(5000)
   }
+  if (userInput === 'Texas') {
+    console.log(`Hook 'em Horns! \\m/`)
+    await sleep(5000)
+  }
   console.log(`Fetching current record for ${userInput}...`);
 
   let isTeamNameValid = await validateTeamName(userInput)
